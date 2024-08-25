@@ -1,7 +1,6 @@
 """ Full assembly of the parts to form the complete network """
 
-from unet_part import *
-
+from .unet_part import DoubleConv,Down,Up,OutConv
 
 class UNet(nn.Module):
     def __init__(self, n_channels, bilinear=True):

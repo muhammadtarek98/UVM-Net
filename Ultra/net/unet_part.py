@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from uvmb import UVMB
+from .uvmb import UVMB
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""

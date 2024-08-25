@@ -55,18 +55,12 @@ class UnetModel(pl.LightningModule):
 def main():
     print("Options")
     print(opt)
-    # if opt.wblogger is not None:
-    #     logger  = WandbLogger(project=opt.wblogger,name="PromptIR-Train")
-    # else:
-    #     logger = TensorBoardLogger(save_dir = "logs/")
 
     trainset = TrainDataset(opt)
     checkpoint_callback = ModelCheckpoint(dirpath = opt.ckpt_dir,every_n_epochs = 1,save_top_k=-1)
     trainloader = DataLoader(trainset, batch_size=opt.batch_size, pin_memory=True, shuffle=True,
                              drop_last=True, num_workers=opt.num_workers)
-    
     model = UNet(n_channels=3)
-    
     trainer = pl.Trainer(max_epochs=opt.epochs,accelerator="gpu",devices=opt.num_gpus,callbacks=[checkpoint_callback])
     trainer.fit(model=model, train_dataloaders=trainloader)
 
