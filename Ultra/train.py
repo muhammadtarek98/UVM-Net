@@ -22,7 +22,6 @@ class UnetModel(pl.LightningModule):
         super().__init__()
         self.net = UNet(n_channels=3)
         self.loss_fn  = nn.L1Loss()
-    
     def forward(self,x):
         return self.net(x)
     
@@ -31,10 +30,8 @@ class UnetModel(pl.LightningModule):
         # it is independent of forward
         (degrad_patch, clean_patch) = batch
         restored = self.net(degrad_patch)
-
         loss = self.loss_fn(restored,clean_patch)
-        # Logging to TensorBoard (if installed) by default
-        self.log("train_loss", loss)
+        self.log(name="train_loss", value=loss)
         return loss
     
     def lr_scheduler_step(self,scheduler,*args, **kwargs):

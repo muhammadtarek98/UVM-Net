@@ -1,11 +1,12 @@
 import torch 
 import torch.nn as nn
 from mamba_ssm import Mamba
-
+import mamba_ssm
+print(torch.__version__)
 
 class UVMB(nn.Module):
-    def __init__(self,c=3,w=256,h=256):
-        super().__init__()
+    def __init__(self,c:int=3,w:int=256,h:int=256):
+        super(UVMB,self).__init__()
         self.convb  = nn.Sequential(
                     nn.Conv2d(in_channels=c, out_channels=16, kernel_size=3, stride=1, padding=1),
                     nn.ReLU(),
@@ -18,7 +19,6 @@ class UVMB(nn.Module):
             d_conv=4,    # Local convolution width
             expand=2,    # Block expansion factor
         )
-
         self.model2 = Mamba(
             # This module uses roughly 3 * expand * d_model^2 parameters
             d_model=c, # Model dimension d_model
@@ -26,7 +26,6 @@ class UVMB(nn.Module):
             d_conv=4,    # Local convolution width
             expand=2,    # Block expansion factor
         )
-
         self.model3 = Mamba(
             # This module uses roughly 3 * expand * d_model^2 parameters
             d_model=w*h, # Model dimension d_model
@@ -37,7 +36,7 @@ class UVMB(nn.Module):
         self.smooth = nn.Conv2d(in_channels=c, out_channels=c, kernel_size=3, stride=1, padding=1)
         self.ln = nn.LayerNorm(normalized_shape=c)
         self.softmax = nn.Softmax()
-    def forward(self, x):
+    def forward(self, x:torch.Tensor)->torch.Tensor:
         b,c,w,h = x.shape
         x = self.convb(x) + x
         x = self.ln(x.reshape(b, -1, c))
