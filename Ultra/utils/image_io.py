@@ -1,5 +1,6 @@
 import glob
 
+import PIL.Image
 import torch
 import torchvision
 import matplotlib
@@ -12,12 +13,12 @@ from PIL import Image
 matplotlib.use('agg')
 
 
-def prepare_hazy_image(file_name):
+def prepare_hazy_image(file_name:str):
     img_pil = crop_image(get_image(file_name, -1)[0], d=32)
     return pil_to_np(img_pil)
 
 
-def prepare_gt_img(file_name, SOTS=True):
+def prepare_gt_img(file_name:str, SOTS:bool=True)->np.ndarray:
     if SOTS:
         img_pil = crop_image(crop_a_image(get_image(file_name, -1)[0], d=10), d=32)
     else:
@@ -26,10 +27,10 @@ def prepare_gt_img(file_name, SOTS=True):
     return pil_to_np(img_pil)
 
 
-def crop_a_image(img, d=10):
+def crop_a_image(img:np.ndarray, d:int=10)->np.ndarray:
     bbox = [
-        int((d)),
-        int((d)),
+        int(d),
+        int(d),
         int((img.size[0] - d)),
         int((img.size[1] - d)),
     ]
@@ -37,7 +38,7 @@ def crop_a_image(img, d=10):
     return img_cropped
 
 
-def crop_image(img, d=32):
+def crop_image(img, d:int=32):
     """
     Make dimensions divisible by d
 
@@ -60,11 +61,11 @@ def crop_image(img, d=32):
     return img_cropped
 
 
-def crop_np_image(img_np, d=32):
+def crop_np_image(img_np, d:int=32)->torch.Tensor:
     return torch_to_np(crop_torch_image(np_to_torch(img_np), d))
 
 
-def crop_torch_image(img, d=32):
+def crop_torch_image(img, d:int=32):
     """
     Make dimensions divisible by d
     image is [1, 3, W, H] or [3, W, H]
@@ -107,11 +108,10 @@ def get_params(opt_over, net, net_input, downsampler=None):
             params += [net_input]
         else:
             assert False, 'what is it?'
-
     return params
 
 
-def get_image_grid(images_np, nrow=8):
+def get_image_grid(images_np, nrow:int=8)->np.ndarray:
     """
     Creates a grid from a list of images by concatenating them.
     :param images_np:
@@ -120,11 +120,10 @@ def get_image_grid(images_np, nrow=8):
     """
     images_torch = [torch.from_numpy(x).type(torch.FloatTensor) for x in images_np]
     torch_grid = torchvision.utils.make_grid(images_torch, nrow)
-
     return torch_grid.numpy()
 
 
-def plot_image_grid(name, images_np, interpolation='lanczos', output_path="output/"):
+def plot_image_grid(name:str, images_np:np.ndarray, interpolation:str='lanczos', output_path:str="output/"):
     """
     Draws images in a grid
 
@@ -132,42 +131,41 @@ def plot_image_grid(name, images_np, interpolation='lanczos', output_path="outpu
         images_np: list of images, each image is np.array of size 3xHxW or 1xHxW
         nrow: how many images will be in one row
         interpolation: interpolation used in plt.imshow
+        :param output_path:
+        :param interpolation:
+        :param interpolation:
+        :param images_np:
+        :param name:
     """
     assert len(images_np) == 2
     n_channels = max(x.shape[0] for x in images_np)
     assert (n_channels == 3) or (n_channels == 1), "images should have 1 or 3 channels"
-
     images_np = [x if (x.shape[0] == n_channels) else np.concatenate([x, x, x], axis=0) for x in images_np]
-
-    grid = get_image_grid(images_np, 2)
-
+    grid = get_image_grid(images_np=images_np, nrow=2)
     if images_np[0].shape[0] == 1:
         plt.imshow(grid[0], cmap='gray', interpolation=interpolation)
     else:
         plt.imshow(grid.transpose(1, 2, 0), interpolation=interpolation)
-
     plt.savefig(output_path + "{}.png".format(name))
 
 
-def save_image_np(name, image_np, output_path="output/"):
+def save_image_np(name:str, image_np:np.ndarray, output_path:str="output/"):
     p = np_to_pil(image_np)
     p.save(output_path + "{}.png".format(name))
 
 
-def save_image_tensor(image_tensor, output_path="output/"):
+def save_image_tensor(image_tensor:torch.Tensor, output_path:str="output/"):
     image_np = torch_to_np(image_tensor)
-    # print(image_np.shape)
     p = np_to_pil(image_np)
     p.save(output_path)
 
 
-def video_to_images(file_name, name):
+def video_to_images(file_name:str, name:str):
     video = prepare_video(file_name)
     for i, f in enumerate(video):
         save_image(name + "_{0:03d}".format(i), f)
 
-
-def images_to_video(images_dir, name, gray=True):
+def images_to_video(images_dir:str, name:str, gray:bool=True):
     num = len(glob.glob(images_dir + "/*.jpg"))
     c = []
     for i in range(num):
@@ -180,35 +178,35 @@ def images_to_video(images_dir, name, gray=True):
     save_video(name, np.array(c))
 
 
-def save_heatmap(name, image_np):
+def save_heatmap(name:str, image_np:np.ndarray):
     cmap = plt.get_cmap('jet')
 
     rgba_img = cmap(image_np)
-    rgb_img = np.delete(rgba_img, 3, 2)
+    rgb_img = np.delete(rgba_img, obj=3, axis=2)
     save_image(name, rgb_img.transpose(2, 0, 1))
 
 
-def save_graph(name, graph_list, output_path="output/"):
+def save_graph(name:str, graph_list, output_path:str="output/"):
     plt.clf()
     plt.plot(graph_list)
     plt.savefig(output_path + name + ".png")
 
 
-def create_augmentations(np_image):
+def create_augmentations(np_image:np.ndarray)->list:
     """
     convention: original, left, upside-down, right, rot1, rot2, rot3
     :param np_image:
     :return:
     """
-    aug = [np_image.copy(), np.rot90(np_image, 1, (1, 2)).copy(),
-           np.rot90(np_image, 2, (1, 2)).copy(), np.rot90(np_image, 3, (1, 2)).copy()]
+    aug = [np_image.copy(), np.rot90(np_image, k=1, axes=(1, 2)).copy(),
+           np.rot90(np_image, k=2, axes=(1, 2)).copy(), np.rot90(np_image, k=3, axes=(1, 2)).copy()]
     flipped = np_image[:, ::-1, :].copy()
-    aug += [flipped.copy(), np.rot90(flipped, 1, (1, 2)).copy(), np.rot90(flipped, 2, (1, 2)).copy(),
-            np.rot90(flipped, 3, (1, 2)).copy()]
+    aug += [flipped.copy(), np.rot90(flipped, k=1,  axes=(1, 2)).copy(), np.rot90(flipped, k2,  axes=(1, 2)).copy(),
+            np.rot90(flipped, k=3,  axes=(1, 2)).copy()]
     return aug
 
 
-def create_video_augmentations(np_video):
+def create_video_augmentations(np_video:np.ndarray)->list:
     """
         convention: original, left, upside-down, right, rot1, rot2, rot3
         :param np_video:
@@ -222,7 +220,7 @@ def create_video_augmentations(np_video):
     return aug
 
 
-def save_graphs(name, graph_dict, output_path="output/"):
+def save_graphs(name:str, graph_dict:dict, output_path:str="output/"):
     """
 
     :param name:
@@ -242,13 +240,13 @@ def save_graphs(name, graph_dict, output_path="output/"):
     plt.savefig(output_path + name + ".png")
 
 
-def load(path):
+def load(path:str)->PIL.Image.Image:
     """Load PIL image."""
     img = Image.open(path)
     return img
 
 
-def get_image(path, imsize=-1):
+def get_image(path:str, imsize:int=-1):
     """Load an image and resize to a cpecific size.
 
     Args:
@@ -272,7 +270,7 @@ def get_image(path, imsize=-1):
     return img, img_np
 
 
-def prepare_gt(file_name):
+def prepare_gt(file_name:str):
     """
     loads makes it divisible
     :param file_name:

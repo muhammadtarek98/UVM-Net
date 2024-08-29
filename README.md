@@ -44,15 +44,15 @@ python Train.py
 Our method can perform tasks such as image dehazingg, deraining, and low-light enhancement.
 The first three images are the test images, the middle three images are the output of the model, and the last three are the GT.
 
-![image](https://github.com/zzr-idam/UVM-Net/blob/main/demo.jpg)
+![image](demo.jpg)
 
-![image](https://github.com/zzr-idam/UVM-Net/blob/main/low-light.jpg)
+![image](low-light.jpg)
 
-![image](https://github.com/zzr-idam/UVM-Net/blob/main/deblur.jpg)
+![image](deblur.jpg)
 
-![image](https://github.com/zzr-idam/UVM-Net/blob/main/derain.jpg)
+![image](derain.jpg)
 
-![image](https://github.com/zzr-idam/UVM-Net/blob/main/underwater.jpg)
+![image](underwater.jpg)
 
 ## Note
 Our method can also be performed on UHD (4K resolution) images on a single GPU, you just need to do the following:

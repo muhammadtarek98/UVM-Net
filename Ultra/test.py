@@ -25,7 +25,7 @@ class SAFMNModel(pl.LightningModule):
         self.net = SAFMN(dim=48, n_blocks=8, ffn_scale=2.0, upscaling_factor=4)
         self.loss_fn  = nn.L1Loss()
     
-    def forward(self,x):
+    def forward(self,x:torch.Tensor):
         return self.net(x)
     
     def training_step(self, batch, batch_idx):
@@ -33,10 +33,9 @@ class SAFMNModel(pl.LightningModule):
         # it is independent of forward
         ([clean_name, de_id], degrad_patch, clean_patch) = batch
         restored = self.net(degrad_patch)
-
         loss = self.loss_fn(restored,clean_patch)
         # Logging to TensorBoard (if installed) by default
-        self.log("train_loss", loss)
+        self.log(name="train_loss",value= loss)
         return loss
     
     def lr_scheduler_step(self,scheduler,*args, **kwargs):

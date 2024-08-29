@@ -19,13 +19,12 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 
 class UnetModel(pl.LightningModule):
     def __init__(self):
-        super().__init__()
+        super(UnetModel,self).__init__()
         self.net = UNet(n_channels=3)
         self.loss_fn  = nn.L1Loss()
-    def forward(self,x):
+    def forward(self,x:torch.Tensor)->torch.Tensor:
         return self.net(x)
-    
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx:int):
         # training_step defines the train loop.
         # it is independent of forward
         (degrad_patch, clean_patch) = batch
@@ -41,13 +40,7 @@ class UnetModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=2e-4)
         scheduler = LinearWarmupCosineAnnealingLR(optimizer=optimizer,warmup_epochs=15,max_epochs=150)
-
         return [optimizer],[scheduler]
-
-
-
-
-
 
 def main():
     print("Options")

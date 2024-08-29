@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from uvmb import UVMB
-
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
     def __init__(self, in_channels:int, out_channels:int, mid_channels:int=None):
@@ -16,8 +15,7 @@ class DoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=mid_channels, out_channels=out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(num_features=out_channels),
-            nn.ReLU(inplace=True)
-        )
+            nn.ReLU(inplace=True))
     def forward(self, x:torch.Tensor)->torch.Tensor:
         inputs = F.interpolate(input=x, size=[64, 64],   mode='bilinear', align_corners=True)
         outputs = self.ub(inputs)
@@ -47,10 +45,9 @@ class Up(nn.Module):
     def forward(self, x1:torch.Tensor, x2:torch.Tensor)->torch.Tensor:
         x1 = self.up(x1)
         # input is CHW
-        diffY = x2.size()[2] - x1.size()[2]
-        diffX = x2.size()[3] - x1.size()[3]
-        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        diffY // 2, diffY - diffY // 2])
+        diff_Y = x2.size()[2] - x1.size()[2]
+        diff_X = x2.size()[3] - x1.size()[3]
+        x1 = F.pad(x1, [diff_X // 2, diff_X - diff_X // 2,diff_Y // 2, diff_Y - diff_Y // 2])
         x = torch.cat(tensors=[x2, x1], dim=1)
         return self.conv(x)
 class OutConv(nn.Module):
